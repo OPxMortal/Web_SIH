@@ -1,0 +1,1005 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="ASUNAMA — Land Records Verification System. Discrepancy Score Dashboard for comparing RoR Cadastral Maps with UAV/Survey Maps using VTOL drone surveys, U-Net AI boundary extraction, and PostGIS spatial analysis.">
+    <title>ASUNAMA — Discrepancy Score Dashboard</title>
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
+    <!-- App CSS -->
+    <link rel="stylesheet" href="css/variables.css">
+    <link rel="stylesheet" href="css/layout.css">
+    <link rel="stylesheet" href="css/components.css">
+    <link rel="stylesheet" href="css/map.css">
+    <link rel="stylesheet" href="css/pages.css">
+
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'><rect width='32' height='32' rx='6' fill='%23e8720c'/><text x='16' y='22' text-anchor='middle' fill='white' font-size='16' font-weight='bold'>A</text></svg>">
+</head>
+<body>
+    <div class="app-wrapper">
+
+        <!-- ===== SIDEBAR ===== -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-logo">
+                <div class="logo-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                </div>
+                <div class="logo-text">
+                    <h1>ASUNAMA</h1>
+                    <span>Land Records Verification</span>
+                </div>
+            </div>
+
+            <div class="sidebar-profile">
+                <div class="avatar">AD</div>
+                <div class="profile-info">
+                    <div class="profile-name">Admin</div>
+                    <div class="profile-role">Administrator</div>
+                    <div class="profile-status">
+                        <span class="status-dot"></span>
+                        <span>Online</span>
+                    </div>
+                </div>
+            </div>
+
+            <nav class="sidebar-nav">
+                <a class="nav-item active" data-page="dashboard" href="#dashboard">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg>
+                    Dashboard
+                </a>
+                <a class="nav-item" data-page="discrepancy-map" href="#discrepancy-map">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                    Discrepancy Map
+                </a>
+                <a class="nav-item" data-page="discrepancy-list" href="#discrepancy-list">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+                    Discrepancy List
+                </a>
+                <a class="nav-item" data-page="field-verification" href="#field-verification">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                    Field Verification
+                </a>
+
+                <a class="nav-item" data-page="survey-missions" href="#survey-missions">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="7.5 4.21 12 6.81 16.5 4.21"/><polyline points="7.5 19.79 7.5 14.6 3 12"/><polyline points="21 12 16.5 14.6 16.5 19.79"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+                    Survey Missions
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a class="nav-item" data-page="reports" href="#reports">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                    Reports
+                </a>
+                <a class="nav-item" data-page="actions" href="#actions">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                    Actions
+                </a>
+                <a class="nav-item" data-page="users" href="#users">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Users
+                </a>
+
+                <div class="nav-divider"></div>
+
+                <a class="nav-item" data-page="settings" href="#settings">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42"/></svg>
+                    Settings
+                </a>
+                <a class="nav-item" id="nav-logout" href="#">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    Logout
+                </a>
+            </nav>
+        </aside>
+
+        <!-- ===== MAIN AREA ===== -->
+        <div class="main-area">
+
+            <!-- Top Header -->
+            <header class="top-header">
+                <div>
+                    <div class="page-title" id="page-title">DISCREPANCY SCORE DASHBOARD</div>
+                    <div class="page-subtitle" id="page-subtitle">Map Comparison : RoR Cadastral Map vs UAV/Survey Map</div>
+                </div>
+                <div class="header-controls" id="header-controls">
+                    <div class="form-group" style="margin:0; min-width:130px;">
+                        <label class="form-label" style="margin-bottom:2px;">Village</label>
+                        <select class="form-select" id="village-select" style="padding:5px 28px 5px 8px;">
+                            <option>Rampur</option>
+                            <option>Karimpur</option>
+                            <option>Tehatta</option>
+                            <option>Chapra</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="margin:0; min-width:140px;">
+                        <label class="form-label" style="margin-bottom:2px;">Date</label>
+                        <input type="date" class="form-input" id="date-input" value="2025-05-26" style="padding:5px 8px;">
+                    </div>
+                    <button class="btn btn-accent" id="btn-refresh" style="margin-top:14px;">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+                        Refresh
+                    </button>
+                </div>
+            </header>
+
+            <!-- Content Area -->
+            <div class="content-area">
+
+                <!-- ===== PAGE: Dashboard ===== -->
+                <section class="page-section active" id="page-dashboard">
+                    <div class="dashboard-grid">
+                        <!-- Map Panel -->
+                        <div class="map-panel card">
+                            <div class="map-container" id="dashboard-map-container">
+                                <div id="dashboard-map" style="width:100%;height:100%;"></div>
+                                <div class="map-legend" id="dashboard-map-legend">
+                                    <h4>Discrepancy Score</h4>
+                                    <div class="legend-item"><div class="legend-color" style="background:#27ae60;"></div> 0 – 20 (Low)</div>
+                                    <div class="legend-item"><div class="legend-color" style="background:#f0b429;"></div> 21 – 40 (Moderate)</div>
+                                    <div class="legend-item"><div class="legend-color" style="background:#e67e22;"></div> 41 – 60 (High)</div>
+                                    <div class="legend-item"><div class="legend-color" style="background:#e74c3c;"></div> 61 – 100 (Very High)</div>
+                                    <div class="legend-divider"></div>
+                                    <div class="legend-item"><div class="legend-line" style="border-top:2px solid #3498db;"></div> RoR Cadastral Boundary</div>
+                                    <div class="legend-item"><div class="legend-line" style="border-top:2px dashed #e74c3c;"></div> UAV / Survey Boundary</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Score Panel -->
+                        <div class="score-panel">
+                            <!-- Overall Score -->
+                            <div class="card mb-md">
+                                <div class="dashboard-score-card" id="overall-score-card">
+                                    <!-- Filled by JS -->
+                                </div>
+                            </div>
+
+                            <!-- Score Summary -->
+                            <div class="card mb-md">
+                                <div class="score-summary">
+                                    <h4>Score Summary</h4>
+                                    <div class="score-summary-grid">
+                                        <div class="score-chart-container">
+                                            <canvas id="score-donut-chart"></canvas>
+                                        </div>
+                                        <div class="score-breakdown" id="score-breakdown">
+                                            <!-- Filled by JS -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Insights -->
+                            <div class="card">
+                                <div class="discrepancy-insights" id="discrepancy-insights">
+                                    <h4>Discrepancy Insights</h4>
+                                    <!-- Filled by JS -->
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- List Panel -->
+                        <div class="list-panel card">
+                            <div class="card-body-compact">
+                                <div class="list-controls">
+                                    <div class="left-controls">
+                                        <h3 style="font-size:var(--font-size-md);font-weight:700;">DISCREPANCY LIST</h3>
+                                        <div class="filter-tabs" id="dashboard-filter-tabs">
+                                            <!-- Filled by JS -->
+                                        </div>
+                                    </div>
+                                    <div class="right-controls">
+                                        <div class="search-box">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                            <input type="text" class="form-input" placeholder="Search Parcel ID" id="dashboard-search" style="width:160px;">
+                                        </div>
+                                        <button class="btn btn-outline btn-sm" id="dashboard-filter-btn">
+                                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:13px;height:13px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                                            Filter
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="data-table-wrapper">
+                                    <table class="data-table" id="dashboard-table">
+                                        <thead>
+                                            <tr>
+                                                <th data-sort="parcelId">Parcel ID</th>
+                                                <th data-sort="rorArea">RoR Area (sqm)</th>
+                                                <th data-sort="surveyArea">Survey Area (sqm)</th>
+                                                <th data-sort="areaDiff">Area Diff. (sqm)</th>
+                                                <th data-sort="areaDiffPercent">Area Diff. (%)</th>
+                                                <th data-sort="score">Discrepancy Score</th>
+                                                <th>Discrepancy Type</th>
+                                                <th data-sort="status">Verification Status</th>
+                                                <th>Action</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="dashboard-table-body">
+                                            <!-- Filled by JS -->
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <div class="pagination" id="dashboard-pagination">
+                                    <!-- Filled by JS -->
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Discrepancy Map ===== -->
+                <section class="page-section" id="page-discrepancy-map">
+                    <div class="full-map-container">
+                        <div id="full-map" style="width:100%;height:100%;"></div>
+                        <div class="map-search-overlay">
+                            <div class="search-box">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                <input type="text" placeholder="Search Parcel ID..." id="map-search-input">
+                            </div>
+                        </div>
+                        <div class="map-toolbar" id="map-toolbar">
+                            <button class="tool-btn active" data-layer="ror" title="RoR Boundaries">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/></svg>
+                            </button>
+                            <button class="tool-btn active" data-layer="uav" title="UAV Boundaries">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/></svg>
+                            </button>
+                            <button class="tool-btn" data-layer="satellite" title="Satellite View">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+                            </button>
+                            <button class="tool-btn" data-action="filter" title="Filter by Score">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                            </button>
+                        </div>
+                        <div class="map-legend">
+                            <h4>Discrepancy Score</h4>
+                            <div class="legend-item"><div class="legend-color" style="background:#27ae60;"></div> 0 – 20 (Low)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#f0b429;"></div> 21 – 40 (Moderate)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#e67e22;"></div> 41 – 60 (High)</div>
+                            <div class="legend-item"><div class="legend-color" style="background:#e74c3c;"></div> 61 – 100 (Very High)</div>
+                        </div>
+                        <div class="map-filter-panel" id="map-filter-panel">
+                            <h4 style="font-size:var(--font-size-sm);font-weight:700;margin-bottom:var(--space-md);">Filter Parcels</h4>
+                            <div class="form-group">
+                                <label class="form-label">Score Range</label>
+                                <select class="form-select" id="map-score-filter">
+                                    <option value="all">All Scores</option>
+                                    <option value="low">0 – 20 (Low)</option>
+                                    <option value="moderate">21 – 40 (Moderate)</option>
+                                    <option value="high">41 – 60 (High)</option>
+                                    <option value="very-high">61 – 100 (Very High)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="map-status-filter">
+                                    <option value="all">All Statuses</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Verified">Verified</option>
+                                </select>
+                            </div>
+                            <button class="btn btn-primary btn-sm btn-block" id="map-apply-filter">Apply Filter</button>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Discrepancy List ===== -->
+                <section class="page-section" id="page-discrepancy-list">
+                    <div class="list-page-header">
+                        <h2>Discrepancy List</h2>
+                        <div style="display:flex;gap:var(--space-sm);">
+                            <button class="btn btn-outline" id="toggle-advanced-filters">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+                                Advanced Filters
+                            </button>
+                            <button class="btn btn-primary" id="export-csv-btn">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                Export CSV
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="advanced-filters" id="advanced-filters-panel">
+                        <div class="filter-row">
+                            <div class="form-group">
+                                <label class="form-label">Score Range</label>
+                                <select class="form-select" id="list-score-filter">
+                                    <option value="all">All Scores</option>
+                                    <option value="low">0 – 20 (Low)</option>
+                                    <option value="moderate">21 – 40 (Moderate)</option>
+                                    <option value="high">41 – 60 (High)</option>
+                                    <option value="very-high">61 – 100 (Very High)</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Discrepancy Type</label>
+                                <select class="form-select" id="list-type-filter">
+                                    <option value="all">All Types</option>
+                                    <option>Area Mismatch</option>
+                                    <option>Boundary Shift</option>
+                                    <option>Encroachment</option>
+                                    <option>Overlap</option>
+                                    <option>Shape Distortion</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Status</label>
+                                <select class="form-select" id="list-status-filter">
+                                    <option value="all">All Statuses</option>
+                                    <option>Pending</option>
+                                    <option>In Progress</option>
+                                    <option>Verified</option>
+                                    <option>Rejected</option>
+                                </select>
+                            </div>
+                            <div class="form-group" style="flex:0;">
+                                <label class="form-label">&nbsp;</label>
+                                <button class="btn btn-primary" id="apply-list-filters">Apply</button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-body-compact">
+                            <div class="list-controls">
+                                <div class="left-controls">
+                                    <div class="filter-tabs" id="list-filter-tabs"></div>
+                                </div>
+                                <div class="right-controls">
+                                    <div class="search-box">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                        <input type="text" class="form-input" placeholder="Search Parcel ID" id="list-search" style="width:180px;">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="data-table-wrapper">
+                                <table class="data-table" id="list-table">
+                                    <thead>
+                                        <tr>
+                                            <th><input type="checkbox" id="list-select-all"></th>
+                                            <th data-sort="parcelId">Parcel ID</th>
+                                            <th>Owner</th>
+                                            <th>Khatian No.</th>
+                                            <th data-sort="rorArea">RoR Area (sqm)</th>
+                                            <th data-sort="surveyArea">Survey Area (sqm)</th>
+                                            <th data-sort="areaDiff">Area Diff. (sqm)</th>
+                                            <th data-sort="areaDiffPercent">Diff %</th>
+                                            <th data-sort="score">Score</th>
+                                            <th>Type</th>
+                                            <th data-sort="status">Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="list-table-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="pagination" id="list-pagination"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Field Verification ===== -->
+                <section class="page-section" id="page-field-verification">
+                    <div class="verification-stats" id="verification-stats">
+                        <!-- Filled by JS -->
+                    </div>
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Parcels Requiring Verification</h3>
+                            <div style="display:flex;gap:var(--space-sm);">
+                                <div class="search-box">
+                                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+                                    <input type="text" class="form-input" placeholder="Search..." id="verification-search" style="width:160px;">
+                                </div>
+                                <select class="form-select" id="verification-status-filter" style="width:140px;">
+                                    <option value="all">All Status</option>
+                                    <option value="Pending">Pending</option>
+                                    <option value="In Progress">In Progress</option>
+                                    <option value="Verified">Verified</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="card-body-compact">
+                            <div class="data-table-wrapper">
+                                <table class="data-table" id="verification-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Parcel ID</th>
+                                            <th>Score</th>
+                                            <th>Type</th>
+                                            <th>Status</th>
+                                            <th>Surveyor</th>
+                                            <th>Last Updated</th>
+                                            <th>GPS Accuracy</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="verification-table-body"></tbody>
+                                </table>
+                            </div>
+                            <div class="pagination" id="verification-pagination"></div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Survey Missions ===== -->
+                <section class="page-section" id="page-survey-missions">
+                    <div class="list-page-header">
+                        <h2>Drone Survey Missions (VTOL + ODM Pipeline)</h2>
+                        <button class="btn btn-primary" id="btn-trigger-survey">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+                            Trigger New Drone Survey
+                        </button>
+                    </div>
+
+                    <!-- Pipeline summary cards -->
+                    <div class="verification-stats mb-lg">
+                        <div class="verification-stat-card verified">
+                            <div class="vs-count" style="color:var(--status-verified);">6</div>
+                            <div class="vs-label">Total Missions</div>
+                        </div>
+                        <div class="verification-stat-card in-progress">
+                            <div class="vs-count" style="color:var(--status-in-progress);">4+1 VTOL</div>
+                            <div class="vs-label">Fixed-Wing Drone</div>
+                        </div>
+                        <div class="verification-stat-card pending">
+                            <div class="vs-count" style="color:#6c5ce7;">8 GCPs</div>
+                            <div class="vs-label">Ground Control Points</div>
+                        </div>
+                        <div class="verification-stat-card verified">
+                            <div class="vs-count" style="color:var(--score-low);">3.1 cm/px</div>
+                            <div class="vs-label">Avg ODM Resolution</div>
+                        </div>
+                    </div>
+
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Mission Flight Log & Processing Status</h3>
+                            <span class="text-xs text-muted">VTOL → ODM Photogrammetry → U-Net Boundary → PostGIS</span>
+                        </div>
+                        <div class="card-body-compact">
+                            <div class="data-table-wrapper">
+                                <table class="data-table" id="survey-missions-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Mission ID</th>
+                                            <th>Date</th>
+                                            <th>Drone Unit</th>
+                                            <th>Pilot</th>
+                                            <th>Flight Time</th>
+                                            <th>GCPs</th>
+                                            <th>RTK Mode</th>
+                                            <th>ODM Res.</th>
+                                            <th>Pipeline Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="survey-missions-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Reports ===== -->
+                <section class="page-section" id="page-reports">
+                    <h2 style="font-size:var(--font-size-xl);font-weight:700;margin-bottom:var(--space-lg);">Reports</h2>
+                    <div class="report-cards">
+                        <div class="report-card" data-report="summary">
+                            <div class="rc-icon" style="background:var(--score-low-bg);color:var(--score-low);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                            </div>
+                            <h4>Summary Report</h4>
+                            <p>Overall discrepancy summary with key metrics and statistics</p>
+                        </div>
+                        <div class="report-card" data-report="detailed">
+                            <div class="rc-icon" style="background:var(--status-in-progress-bg);color:var(--status-in-progress);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
+                            </div>
+                            <h4>Detailed Comparison</h4>
+                            <p>Parcel-by-parcel RoR vs UAV/Survey comparison with area differences</p>
+                        </div>
+                        <div class="report-card" data-report="action">
+                            <div class="rc-icon" style="background:var(--score-high-bg);color:var(--score-high);">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+                            </div>
+                            <h4>Action Report</h4>
+                            <p>Recommended actions for high discrepancy parcels requiring attention</p>
+                        </div>
+                    </div>
+
+                    <!-- Report generation controls -->
+                    <div class="card mb-lg">
+                        <div class="card-header">
+                            <h3>Generate Report</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="filter-row">
+                                <div class="form-group">
+                                    <label class="form-label">Report Type</label>
+                                    <select class="form-select" id="report-type-select">
+                                        <option>Summary Report</option>
+                                        <option>Detailed Comparison</option>
+                                        <option>Action Report</option>
+                                        <option>Encroachment Report</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Date Range</label>
+                                    <input type="date" class="form-input" value="2025-05-01">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">To</label>
+                                    <input type="date" class="form-input" value="2025-05-26">
+                                </div>
+                                <div class="form-group" style="flex:0;">
+                                    <label class="form-label">&nbsp;</label>
+                                    <button class="btn btn-primary" id="generate-report-btn">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                        Generate
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Recent Reports -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3>Recent Reports</h3>
+                        </div>
+                        <div class="card-body-compact">
+                            <div class="data-table-wrapper">
+                                <table class="data-table" id="reports-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Report ID</th>
+                                            <th>Type</th>
+                                            <th>Date</th>
+                                            <th>Generated By</th>
+                                            <th>Parcels</th>
+                                            <th>Status</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="reports-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Actions ===== -->
+                <section class="page-section" id="page-actions">
+                    <h2 style="font-size:var(--font-size-xl);font-weight:700;margin-bottom:var(--space-lg);">Admin Actions</h2>
+                    <div class="admin-actions-grid">
+                        <!-- Quick Actions -->
+                        <div class="card">
+                            <div class="card-header"><h3>Quick Actions</h3></div>
+                            <div class="card-body">
+                                <div class="action-item">
+                                    <div class="action-icon" style="background:var(--status-in-progress-bg);color:var(--status-in-progress);">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    </div>
+                                    <div class="action-info">
+                                        <h4>Review Verification</h4>
+                                        <p>Review field verification and observations</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm">Review</button>
+                                </div>
+                                <div class="action-item">
+                                    <div class="action-icon" style="background:#ede7f6;color:#6c5ce7;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                                    </div>
+                                    <div class="action-info">
+                                        <h4>Update Parcel</h4>
+                                        <p>Update parcel boundary / area / attributes</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm">Update</button>
+                                </div>
+                                <div class="action-item">
+                                    <div class="action-icon" style="background:var(--score-low-bg);color:var(--score-low);">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                                    </div>
+                                    <div class="action-info">
+                                        <h4>Approve Changes</h4>
+                                        <p>Approve and sync with RoR database</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" style="color:var(--score-low);border-color:var(--score-low);">Approve</button>
+                                </div>
+                                <div class="action-item">
+                                    <div class="action-icon" style="background:var(--score-high-bg);color:var(--score-high);">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                    </div>
+                                    <div class="action-info">
+                                        <h4>Generate Report</h4>
+                                        <p>Generate discrepancy and action report</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm" style="color:var(--score-high);border-color:var(--score-high);">Report</button>
+                                </div>
+                                <div class="action-item">
+                                    <div class="action-icon" style="background:var(--score-moderate-bg);color:#b8860b;">
+                                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:18px;height:18px;"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                                    </div>
+                                    <div class="action-info">
+                                        <h4>Export Data</h4>
+                                        <p>Export updated parcel data</p>
+                                    </div>
+                                    <button class="btn btn-outline btn-sm">Export</button>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Log -->
+                        <div class="card">
+                            <div class="card-header">
+                                <h3>Recent Activity Log</h3>
+                                <span class="text-xs text-muted">Last 7 days</span>
+                            </div>
+                            <div class="card-body-compact">
+                                <div class="data-table-wrapper">
+                                    <table class="data-table" id="action-log-table">
+                                        <thead>
+                                            <tr>
+                                                <th>ID</th>
+                                                <th>Action</th>
+                                                <th>Parcel</th>
+                                                <th>User</th>
+                                                <th>Date</th>
+                                                <th>Status</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="action-log-body"></tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Users ===== -->
+                <section class="page-section" id="page-users">
+                    <div class="users-header">
+                        <h2 style="font-size:var(--font-size-xl);font-weight:700;">User Management</h2>
+                        <button class="btn btn-primary" id="add-user-btn">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:14px;height:14px;"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+                            Add User
+                        </button>
+                    </div>
+                    <div class="card">
+                        <div class="card-body-compact">
+                            <div class="data-table-wrapper">
+                                <table class="data-table" id="users-table">
+                                    <thead>
+                                        <tr>
+                                            <th>Name</th>
+                                            <th>Email</th>
+                                            <th>Role</th>
+                                            <th>Status</th>
+                                            <th>Last Active</th>
+                                            <th>Parcels Assigned</th>
+                                            <th>Action</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="users-table-body"></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <!-- ===== PAGE: Settings ===== -->
+                <section class="page-section" id="page-settings">
+                    <h2 style="font-size:var(--font-size-xl);font-weight:700;margin-bottom:var(--space-lg);">Settings</h2>
+                    <div class="settings-sections">
+                        <!-- Profile -->
+                        <div class="settings-section">
+                            <div class="settings-section-header">Profile Settings</div>
+                            <div class="settings-section-body">
+                                <div class="filter-row" style="margin-bottom:var(--space-md);">
+                                    <div class="form-group">
+                                        <label class="form-label">Full Name</label>
+                                        <input type="text" class="form-input" value="Sushil Kumar">
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Email</label>
+                                        <input type="email" class="form-input" value="admin@lrvs.gov.in">
+                                    </div>
+                                </div>
+                                <div class="filter-row">
+                                    <div class="form-group">
+                                        <label class="form-label">Role</label>
+                                        <input type="text" class="form-input" value="Administrator" disabled>
+                                    </div>
+                                    <div class="form-group">
+                                        <label class="form-label">Department</label>
+                                        <input type="text" class="form-input" value="Land Records & Survey">
+                                    </div>
+                                </div>
+                                <button class="btn btn-primary mt-md">Save Changes</button>
+                            </div>
+                        </div>
+
+                        <!-- Map Settings -->
+                        <div class="settings-section">
+                            <div class="settings-section-header">Map Configuration</div>
+                            <div class="settings-section-body">
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">Default Zoom Level</div>
+                                        <div class="sr-desc">Initial zoom when opening map views</div>
+                                    </div>
+                                    <select class="form-select" style="width:100px;">
+                                        <option>14</option>
+                                        <option>15</option>
+                                        <option selected>16</option>
+                                        <option>17</option>
+                                        <option>18</option>
+                                    </select>
+                                </div>
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">Show UAV Boundaries</div>
+                                        <div class="sr-desc">Display UAV/Survey boundary overlay on maps</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">Show Parcel Labels</div>
+                                        <div class="sr-desc">Display parcel ID numbers on map</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">Satellite Imagery</div>
+                                        <div class="sr-desc">Use satellite tiles as default base layer</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Notifications -->
+                        <div class="settings-section">
+                            <div class="settings-section-header">Notifications</div>
+                            <div class="settings-section-body">
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">Email Notifications</div>
+                                        <div class="sr-desc">Receive email alerts for verification updates</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">High Discrepancy Alerts</div>
+                                        <div class="sr-desc">Alert when new parcels exceed score threshold of 60</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox" checked>
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                                <div class="settings-row">
+                                    <div>
+                                        <div class="sr-label">Weekly Summary</div>
+                                        <div class="sr-desc">Send weekly progress summary report</div>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="checkbox">
+                                        <span class="slider"></span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- System -->
+                        <div class="settings-section">
+                            <div class="settings-section-header">System Information</div>
+                            <div class="settings-section-body">
+                                <div class="settings-row">
+                                    <div class="sr-label">Version</div>
+                                    <span class="text-sm text-muted">LRVS v1.2.4</span>
+                                </div>
+                                <div class="settings-row">
+                                    <div class="sr-label">Last Sync</div>
+                                    <span class="text-sm text-muted">26 May 2025, 14:32 IST</span>
+                                </div>
+                                <div class="settings-row">
+                                    <div class="sr-label">Database</div>
+                                    <span class="text-sm text-muted">Connected (PostgreSQL)</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+            </div><!-- /content-area -->
+        </div><!-- /main-area -->
+
+        <!-- ===== FIELD VERIFICATION SLIDE PANEL ===== -->
+        <div class="field-panel-backdrop" id="field-panel-backdrop"></div>
+        <div class="field-panel-overlay" id="field-panel">
+            <div class="field-panel-header">
+                <button class="fp-back" id="fp-close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="15 18 9 12 15 6"/></svg>
+                </button>
+                <h3>FIELD VERIFICATION</h3>
+                <button class="fp-more">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="1"/><circle cx="12" cy="5" r="1"/><circle cx="12" cy="19" r="1"/></svg>
+                </button>
+            </div>
+
+            <div class="field-panel-parcel-info" id="fp-parcel-info">
+                <div>
+                    <div class="parcel-id-label">Parcel ID</div>
+                    <div class="parcel-id-value" id="fp-parcel-id">—</div>
+                </div>
+                <div>
+                    <span class="text-xs text-muted">Discrepancy Score</span>
+                    <div id="fp-score-badge"></div>
+                </div>
+            </div>
+
+            <div class="tab-bar" id="fp-tabs">
+                <div class="tab-item active" data-tab="verification">VERIFICATION</div>
+                <div class="tab-item" data-tab="photos">PHOTOS</div>
+                <div class="tab-item" data-tab="details">DETAILS</div>
+            </div>
+
+            <div class="field-panel-body" id="fp-body">
+                <!-- Tab: Verification -->
+                <div class="fp-tab-content active" id="fp-tab-verification">
+                    <div class="fp-location-row">
+                        <span>Location</span>
+                        <span class="gps-accuracy" id="fp-gps-accuracy">GPS Accuracy: — m</span>
+                    </div>
+                    <div class="fp-coords" id="fp-coords">
+                        <span>—, —</span>
+                        <div class="fp-live-indicator">
+                            <span class="live-dot"></span> Live
+                        </div>
+                    </div>
+                    <div class="mini-map" id="fp-mini-map"></div>
+
+                    <div class="form-group mt-lg">
+                        <label class="form-label">Verification Status</label>
+                        <select class="form-select" id="fp-status-select">
+                            <option>Boundary Mismatch</option>
+                            <option>Area Discrepancy</option>
+                            <option>Encroachment Detected</option>
+                            <option>No Issue Found</option>
+                            <option>Requires Re-survey</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Actual Observation</label>
+                        <textarea class="form-textarea" id="fp-observation" rows="3" placeholder="Enter field observations..."></textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Recommended Action</label>
+                        <select class="form-select" id="fp-action-select">
+                            <option>Update Boundary</option>
+                            <option>Re-survey Required</option>
+                            <option>Update Area Records</option>
+                            <option>Field Inspection</option>
+                            <option>Encroachment Removal</option>
+                            <option>No Action Needed</option>
+                        </select>
+                    </div>
+                    <button class="btn btn-accent btn-block btn-lg" id="fp-submit-btn">SUBMIT VERIFICATION</button>
+                </div>
+
+                <!-- Tab: Photos -->
+                <div class="fp-tab-content" id="fp-tab-photos" style="display:none;">
+                    <div class="empty-state" style="padding:var(--space-xl);">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                        <h4>No Photos Uploaded</h4>
+                        <p>Use the camera button below to capture field photos</p>
+                    </div>
+                </div>
+
+                <!-- Tab: Details -->
+                <div class="fp-tab-content" id="fp-tab-details" style="display:none;">
+                    <div id="fp-details-content">
+                        <!-- Filled by JS -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="field-panel-footer">
+                <button class="fp-footer-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/></svg>
+                    MAP
+                </button>
+                <button class="fp-footer-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+                    CAMERA
+                </button>
+                <button class="fp-footer-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+                    HISTORY
+                </button>
+            </div>
+        </div>
+
+        <!-- ===== ADD USER MODAL ===== -->
+        <div class="modal-backdrop" id="add-user-modal">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>Add New User</h3>
+                    <button class="btn btn-icon btn-outline" id="close-user-modal">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width:16px;height:16px;"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label class="form-label">Full Name</label>
+                        <input type="text" class="form-input" placeholder="Enter full name">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" placeholder="Enter email address">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Role</label>
+                        <select class="form-select">
+                            <option>Surveyor</option>
+                            <option>Verifier</option>
+                            <option>Viewer</option>
+                            <option>Admin</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-outline" id="cancel-user-modal">Cancel</button>
+                    <button class="btn btn-primary">Add User</button>
+                </div>
+            </div>
+        </div>
+
+    </div><!-- /app-wrapper -->
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+
+    <!-- App JS -->
+    <script src="js/data.js"></script>
+    <script src="js/app.js"></script>
+    <script src="js/dashboard.js"></script>
+    <script src="js/discrepancy-map.js"></script>
+    <script src="js/discrepancy-list.js"></script>
+    <script src="js/field-verification.js"></script>
+    <script src="js/reports.js"></script>
+    <script src="js/actions.js"></script>
+    <script src="js/users.js"></script>
+    <script src="js/survey-missions.js"></script>
+    <script src="js/settings.js"></script>
+</body>
+</html>

@@ -1,0 +1,98 @@
+/* ============================================
+   DESIGN TOKENS — Land Records Verification System
+   ============================================ */
+
+:root {
+    /* Primary palette — deep navy to indigo */
+    --sidebar-bg: #1b1b3a;
+    --sidebar-hover: #2a2a52;
+    --sidebar-active: #e8720c;
+    --sidebar-text: #b8b8d0;
+    --sidebar-text-active: #ffffff;
+
+    /* Brand colors */
+    --primary: #4a3aad;
+    --primary-light: #6c5ce7;
+    --primary-dark: #2d2370;
+    --accent: #e8720c;
+    --accent-hover: #d16208;
+    --accent-light: #fef3e6;
+
+    /* Discrepancy score colors */
+    --score-low: #27ae60;
+    --score-low-bg: #e8f8ef;
+    --score-moderate: #f0b429;
+    --score-moderate-bg: #fef9e7;
+    --score-high: #e67e22;
+    --score-high-bg: #fdf0e0;
+    --score-very-high: #e74c3c;
+    --score-very-high-bg: #fdecea;
+
+    /* Status colors */
+    --status-pending: #f0b429;
+    --status-pending-bg: #fef9e7;
+    --status-verified: #27ae60;
+    --status-verified-bg: #e8f8ef;
+    --status-in-progress: #3498db;
+    --status-in-progress-bg: #eaf4fc;
+    --status-rejected: #e74c3c;
+    --status-rejected-bg: #fdecea;
+
+    /* Neutrals */
+    --bg-body: #f0f2f5;
+    --bg-card: #ffffff;
+    --bg-card-hover: #fafbfc;
+    --border-color: #e2e5ea;
+    --border-light: #f0f1f3;
+
+    /* Text */
+    --text-primary: #1a1a2e;
+    --text-secondary: #5a5a7a;
+    --text-muted: #8e8ea8;
+    --text-inverse: #ffffff;
+
+    /* Typography */
+    --font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    --font-size-xs: 0.7rem;
+    --font-size-sm: 0.8rem;
+    --font-size-base: 0.875rem;
+    --font-size-md: 1rem;
+    --font-size-lg: 1.15rem;
+    --font-size-xl: 1.35rem;
+    --font-size-2xl: 1.75rem;
+    --font-size-3xl: 2.25rem;
+
+    /* Spacing */
+    --space-xs: 4px;
+    --space-sm: 8px;
+    --space-md: 12px;
+    --space-base: 16px;
+    --space-lg: 20px;
+    --space-xl: 24px;
+    --space-2xl: 32px;
+    --space-3xl: 40px;
+
+    /* Borders */
+    --radius-sm: 4px;
+    --radius-md: 6px;
+    --radius-lg: 8px;
+    --radius-xl: 12px;
+    --radius-round: 50%;
+
+    /* Shadows */
+    --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.06);
+    --shadow-md: 0 2px 8px rgba(0, 0, 0, 0.08);
+    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.1);
+    --shadow-xl: 0 8px 30px rgba(0, 0, 0, 0.12);
+
+    /* Transitions */
+    --transition-fast: 150ms ease;
+    --transition-base: 250ms ease;
+    --transition-slow: 400ms ease;
+
+    /* Layout */
+    --sidebar-width: 230px;
+    --sidebar-collapsed-width: 64px;
+    --header-height: 56px;
+    --field-panel-width: 340px;
+}
