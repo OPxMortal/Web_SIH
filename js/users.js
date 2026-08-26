@@ -50,6 +50,7 @@ function setupUserEvents() {
     const modal = document.getElementById('add-user-modal');
     const closeBtn = document.getElementById('close-user-modal');
     const cancelBtn = document.getElementById('cancel-user-modal');
+    const saveBtn = document.getElementById('save-user-modal');
 
     if (addBtn) {
         addBtn.addEventListener('click', () => modal.classList.add('open'));
@@ -63,6 +64,50 @@ function setupUserEvents() {
     if (modal) {
         modal.addEventListener('click', function(e) {
             if (e.target === this) this.classList.remove('open');
+        });
+    }
+
+    if (saveBtn && !saveBtn._bound) {
+        saveBtn._bound = true;
+        saveBtn.addEventListener('click', function() {
+            const nameInput = document.getElementById('new-user-name');
+            const emailInput = document.getElementById('new-user-email');
+            const roleSelect = document.getElementById('new-user-role');
+
+            const fullName = nameInput ? nameInput.value.trim() : '';
+            const email = emailInput ? emailInput.value.trim() : '';
+            const role = roleSelect ? roleSelect.value : 'surveyor';
+
+            if (!fullName) {
+                alert('Please enter a full name.');
+                return;
+            }
+            if (!email) {
+                alert('Please enter an email address.');
+                return;
+            }
+
+            const shortName = fullName.split(' ')[0];
+            const newUser = {
+                id: USERS.length + 1,
+                name: shortName,
+                fullName: fullName,
+                email: email,
+                role: role,
+                status: 'online',
+                lastActive: new Date().toISOString().split('T')[0],
+                parcelsAssigned: role === 'admin' || role === 'viewer' ? '-' : 0
+            };
+
+            USERS.unshift(newUser);
+            renderUsersTable();
+
+            // Clear inputs
+            if (nameInput) nameInput.value = '';
+            if (emailInput) emailInput.value = '';
+            if (roleSelect) roleSelect.selectedIndex = 0;
+
+            modal.classList.remove('open');
         });
     }
 }

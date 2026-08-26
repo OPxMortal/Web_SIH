@@ -330,8 +330,31 @@ function initDashboardMap() {
     setTimeout(() => dashboardMap.invalidateSize(), 200);
 }
 
+// Village coordinates mapping
+const VILLAGE_COORDS = {
+    'Ponneri': [13.3120, 80.1950],
+    'Minjur': [13.2790, 80.2520],
+    'Sriperumbudur': [12.9690, 79.9430],
+    'Gummidipoondi': [13.4070, 80.1230],
+    'Red Hills (Puzhal)': [13.1890, 80.1830],
+    'Avadi': [13.1140, 80.1000]
+};
+
 // ---- Setup Events ----
 function setupDashboardEvents() {
+    // Village select map change
+    const villageSelect = document.getElementById('village-select');
+    if (villageSelect && !villageSelect._bound) {
+        villageSelect._bound = true;
+        villageSelect.addEventListener('change', function() {
+            const selectedVillage = this.value;
+            const coords = VILLAGE_COORDS[selectedVillage];
+            if (coords && dashboardMap) {
+                dashboardMap.flyTo(coords, 16, { duration: 1.2 });
+            }
+        });
+    }
+
     // Search
     const searchInput = document.getElementById('dashboard-search');
     if (searchInput) {
